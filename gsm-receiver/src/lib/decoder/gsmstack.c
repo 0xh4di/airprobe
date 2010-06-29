@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#include <unistd.h>
 #include <string.h>
 #include "gsmstack.h"
 //#include "gsm_constants.h"
@@ -13,6 +14,11 @@
 //#include "sch.h"
 #include "cch.h"
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#include <osmocore/msgb.h>
 #include <osmocore/gsmtap.h>
 #include <osmocore/gsmtap_util.h>
 
@@ -81,12 +87,31 @@ diff_decode(char *dst, char *src, int len)
 int
 GS_new(GS_CTX *ctx)
 {
+	int rc;
+	struct sockaddr_in sin;
+
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(GSMTAP_UDP_PORT);
+	inet_aton("127.0.0.1", &sin.sin_addr);
+
 	memset(ctx, 0, sizeof *ctx);
 	interleave_init(&ctx->interleave_ctx, 456, 114);
 	ctx->fn = -1;
 	ctx->bsic = -1;
+	ctx->gsmtap_fd = -1;
 
-	gsmtap_init(htonl(0x7f000001));
+	rc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	if (rc < 0) {
+		perror("creating UDP socket\n");
+		return rc;
+	}
+	ctx->gsmtap_fd = rc;
+	rc = connect(rc, (struct sockaddr *)&sin, sizeof(sin));
+	if (rc < 0) {
+		perror("connectiong UDP socket");
+		close(ctx->gsmtap_fd);
+		return rc;
+	}
 
 	return 0;
 }
@@ -164,9 +189,15 @@ GS_process(GS_CTX *ctx, int ts, int type, const unsigned char *src, int fn)
 
 		out_gsmdecode(0, 0, ts, ctx->fn - 4, data, len);
 
-		/* arfcn, ts, chan_type, ss, fn, signal, snr, data, len */
-		gsmtap_sendmsg(0, ts, GSMTAP_CHANNEL_BCCH, 0,
-				ctx->fn-4, 0, 0, data, len);
+		if (ctx->gsmtap_fd >= 0) {
+			struct msgb *msg;
+			/* arfcn, ts, chan_type, ss, fn, signal, snr, data, len */
+			msg = gsmtap_makemsg(0, ts, GSMTAP_CHANNEL_BCCH, 0,
+					     ctx->fn-4, 0, 0, data, len);
+			if (msg)
+				write(ctx->gsmtap_fd, msg->data,
+				      msg->len);
+		}
 
 #if 0
 		if (ctx->fn % 51 != 0) && ( (((ctx->fn % 51 + 5) % 10 == 0) || (((ctx->fn % 51) + 1) % 10 ==0) ) )
