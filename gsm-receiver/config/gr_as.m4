@@ -1,6 +1,8 @@
-# Check for IPC System V shm support.             -*- Autoconf -*-
+# Figure out how to run the assembler.             -*- Autoconf -*-
 
-# Copyright 2003 Free Software Foundation, Inc.
+# serial 2
+
+# Copyright 2001 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,20 +19,16 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
 # 02111-1307, USA.
 
-AC_DEFUN([GR_SYSV_SHM],
-[
-	AC_LANG_SAVE
-	AC_LANG_C
+# I just copy and renamed this from automake-1.6.3 so we should work 
+# under both 1.4-p6 and later.  -eb
 
-	AC_CHECK_HEADERS([sys/ipc.h sys/shm.h])
-
-        save_LIBS="$LIBS"
-	AC_SEARCH_LIBS(shmat, [cygipc ipc],
-	  [ IPC_LIBS="$LIBS" ],
-	  [ AC_MSG_WARN([SystemV IPC support not found. ]) ]
-	)
-        LIBS="$save_LIBS"
-
-	AC_LANG_RESTORE
-	AC_SUBST(IPC_LIBS)
-])
+# GR_PROG_AS
+# ----------
+AC_DEFUN([GR_PROG_AS],
+[# By default we simply use the C compiler to build assembly code.
+AC_REQUIRE([AC_PROG_CC])
+: ${CCAS='$(CC)'}
+# Set ASFLAGS if not already set.
+: ${CCASFLAGS='$(CFLAGS)'}
+AC_SUBST(CCAS)
+AC_SUBST(CCASFLAGS)])

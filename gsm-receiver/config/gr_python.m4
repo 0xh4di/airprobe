@@ -5,7 +5,7 @@ dnl This file is part of GNU Radio
 dnl 
 dnl GNU Radio is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
-dnl the Free Software Foundation; either version 3, or (at your option)
+dnl the Free Software Foundation; either version 2, or (at your option)
 dnl any later version.
 dnl 
 dnl GNU Radio is distributed in the hope that it will be useful,
@@ -15,8 +15,8 @@ dnl GNU General Public License for more details.
 dnl 
 dnl You should have received a copy of the GNU General Public License
 dnl along with GNU Radio; see the file COPYING.  If not, write to
-dnl the Free Software Foundation, Inc., 51 Franklin Street,
-dnl Boston, MA 02110-1301, USA.
+dnl the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+dnl Boston, MA 02111-1307, USA.
 dnl 
 
 # PYTHON_DEVEL()
@@ -27,13 +27,6 @@ dnl
 AC_DEFUN([PYTHON_DEVEL],[
 	AC_REQUIRE([AM_PATH_PYTHON])
 	AC_REQUIRE([AC_CANONICAL_HOST])
-
-	# For Fedora Core 5 and 6, see ticket:39 in Trac
-	if test -f '/etc/redhat-release'; then
-		if  (echo $pyexecdir | grep -q lib64); then
-			pythondir="$pyexecdir"
-		fi
-	fi
 
 	# Check for Python include path
 	AC_MSG_CHECKING([for Python include path])
@@ -100,10 +93,22 @@ print path
           PYTHON_LDFLAGS="-L$python_stdlib_path -l$libpython_name"
           AC_MSG_RESULT($PYTHON_LDFLAGS) 
           # Replace all backslashes in PYTHON Paths with forward slashes
+          AC_MSG_CHECKING([for pythondir])
           pythondir=`echo $pythondir |sed 's,\\\\,/,g'`
+          AC_MSG_RESULT($pythondir)
+          AC_SUBST([pythondir])
+          AC_MSG_CHECKING([for pkgpythondir])
           pkgpythondir=`echo $pkgpythondir |sed 's,\\\\,/,g'`
+          AC_MSG_RESULT($pkgpythondir)
+          AC_SUBST([pkgpythondir])
+          AC_MSG_CHECKING([for pyexecdir])
           pyexecdir=`echo $pyexecdir |sed 's,\\\\,/,g'`
+          AC_MSG_RESULT($pyexecdir)
+          AC_SUBST([pyexecdir])
+          AC_MSG_CHECKING([for pkgpyexecdir])
           pkgpyexecdir=`echo $pkgpyexecdir |sed 's,\\\\,/,g'`
+          AC_MSG_RESULT($pkgpyexecdir)
+          AC_SUBST([pkgpyexecdir])
 	  ;;
         esac
 
