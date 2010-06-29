@@ -40,7 +40,7 @@ ALL_IFILES = 				\
 	$(NON_LOCAL_IFILES)		
 
 NON_LOCAL_IFILES =			\
-	$(GNURADIO_CORE_INCLUDEDIR)/swig/gnuradio.i
+	$(swigincludedir)/gnuradio.i
 
 
 LOCAL_IFILES = 				\
