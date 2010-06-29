@@ -13,9 +13,11 @@
 //#include "sch.h"
 #include "cch.h"
 
+#include <osmocore/gsmtap.h>
+#include <osmocore/gsmtap_util.h>
+
 static const int USEFUL_BITS = 142;
 
-//#include "out_pcap.h"
 enum BURST_TYPE {
         UNKNOWN,
         FCCH, 
@@ -84,17 +86,7 @@ GS_new(GS_CTX *ctx)
 	ctx->fn = -1;
 	ctx->bsic = -1;
 
-	ctx->tun_fd = mktun("gsm", ctx->ether_addr);
-	if (ctx->tun_fd < 0)
-		fprintf(stderr, "cannot open 'gsm' tun device, did you create it?\n");
-
-	ctx->pcap_fd = open_pcap_file("gsm-receiver.pcap");
-	if (ctx->pcap_fd < 0)
-		fprintf(stderr, "cannot open PCAP file: %s\n", strerror(errno));
-
-	ctx->burst_pcap_fd = open_pcap_file("gsm-receiver-burst.pcap");
-	if (ctx->burst_pcap_fd < 0)
-		fprintf(stderr, "cannot open burst PCAP file: %s\n", strerror(errno));
+	gsmtap_init(htonl(0x7f000001));
 
 	return 0;
 }
@@ -112,15 +104,9 @@ GS_process(GS_CTX *ctx, int ts, int type, const unsigned char *src, int fn)
 	unsigned char *data;
 	int len;
 	struct gs_ts_ctx *ts_ctx = &ctx->ts_ctx[ts];
-	unsigned char octified[BURST_BYTES];
 
 	memset(ctx->msg, 0, sizeof(ctx->msg));
 
-	/* write burst to burst PCAP file */
-	burst_octify(octified, src, USEFUL_BITS);
-	write_pcap_packet(ctx->burst_pcap_fd, 0 /* arfcn */, ts, ctx->fn,
-			  1, type, octified, BURST_BYTES);
-	
 #if 0
 	if (ts != 0) {
 		/* non-0 timeslots should end up in PCAP */
@@ -177,9 +163,11 @@ GS_process(GS_CTX *ctx, int ts, int type, const unsigned char *src, int fn)
 		//DEBUGF("OK TS %d, len %d\n", ts, len);
 
 		out_gsmdecode(0, 0, ts, ctx->fn - 4, data, len);
-		write_interface(ctx->tun_fd, data+1, len-1, ctx->ether_addr);
-		write_pcap_packet(ctx->pcap_fd, 0 /* arfcn */, ts, ctx->fn,
-				  0, NORMAL, data, len);
+
+		/* arfcn, ts, chan_type, ss, fn, signal, snr, data, len */
+		gsmtap_sendmsg(0, ts, GSMTAP_CHANNEL_BCCH, 0,
+				ctx->fn-4, 0, 0, data, len);
+
 #if 0
 		if (ctx->fn % 51 != 0) && ( (((ctx->fn % 51 + 5) % 10 == 0) || (((ctx->fn % 51) + 1) % 10 ==0) ) )
 			ready = 1;

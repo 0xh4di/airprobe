@@ -1,5 +1,7 @@
 include $(top_srcdir)/Makefile.common
 
+ACLOCAL_AMFLAGS = -Iconfig
+
 SUBDIRS = src config
 DIST_SUBDIRS = src config
 

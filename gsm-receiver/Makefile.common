@@ -27,17 +27,18 @@ MAIN_INCLUDEDIR = $(top_srcdir)/src/lib
 DECODER_INCLUDEDIR = $(top_srcdir)/src/lib/decoder
 DECODER_LA = $(top_builddir)/src/lib/decoder/libdecoder.la
 
-STD_DEFINES_AND_INCLUDES = \
-	-I$(DECODER_INCLUDEDIR) \
-	-I$(MAIN_INCLUDEDIR) \
-	-I$(GNURADIO_CORE_INCLUDEDIR) \
-	-I$(TCH_DECODER_INCLUDEDIR)
-
 # includes
 grincludedir   = $(includedir)/gnuradio
 
 # swig includes 
 swigincludedir = $(grincludedir)/swig
+
+STD_DEFINES_AND_INCLUDES = \
+	-I$(DECODER_INCLUDEDIR) \
+	-I$(MAIN_INCLUDEDIR) \
+	-I$(grincludedir) \
+	-I$(TCH_DECODER_INCLUDEDIR)
+
 
 # Install this stuff in the appropriate subdirectory
 # This usually ends up at:
@@ -48,7 +49,7 @@ grpyexecdir = $(pyexecdir)/gnuradio
 
 # swig flags
 SWIGPYTHONFLAGS = -fvirtual -python -modern
-SWIGGRFLAGS = -I$(GNURADIO_CORE_INCLUDEDIR)/swig -I$(GNURADIO_CORE_INCLUDEDIR)
+SWIGGRFLAGS = -I$(swigincludedir) -I$(grincludedir)
 
 # Don't assume that make predefines $(RM), because BSD make does
 # not. We define it now in configure.ac using AM_PATH_PROG, but now

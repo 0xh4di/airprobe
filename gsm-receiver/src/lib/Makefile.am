@@ -32,8 +32,8 @@ ourlibdir    = $(grpyexecdir)
 AM_CPPFLAGS = $(STD_DEFINES_AND_INCLUDES) $(PYTHON_CPPFLAGS) $(WITH_INCLUDES) 
 #		-I$(OPEN_BTS_INCLUDES)
 
-SWIGPYTHONARGS = $(SWIGPYTHONFLAGS) $(SWIGGRFLAGS) $(WITH_SWIG_INCLUDES) \
-	$(WITH_INCLUDES)
+SWIGPYTHONARGS = $(SWIGPYTHONFLAGS) $(SWIGGRFLAGS) -I$(swigincludedir) \
+	-I$(grincludedir)
 
 ALL_IFILES = 				\
 	$(LOCAL_IFILES)			\
@@ -79,6 +79,7 @@ _gsm_la_LDFLAGS = $(NO_UNDEFINED) -module -avoid-version
 _gsm_la_LIBADD =		\
 	$(PYTHON_LDFLAGS)	\
 	libgsmdemod.la		\
+	$(LIBOSMOCORE_LIBS)	\
 	-lstdc++		\
 	$(DECODER_LA)
 
